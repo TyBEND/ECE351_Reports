@@ -2,10 +2,9 @@
 %                                                              %
 % Tyler Bendele                                                %
 % ECE351 and Section 51                                        %
-% Lab 5                                                        %
-% Due Date: February 22, 2022                                  %
-% In this lab we find the step and impulse response of an      %
-% RLC Bandpass Filter                                          %
+% Lab 6                                                        %
+% Due Date: March 1, 2022                                      %
+% Partial Fraction Expansion practice                          %
 %                                                              %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% DOCUMENT PREAMBLE %%%
@@ -48,11 +47,11 @@ tabsize=2
 }
 \lstset{style=mystyle}
 \setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
-\title{Lab 5: Step and Impulse Response of a RLC Band Pass Filter}
+\title{Lab 6: Partial Fraction Expansion}
 % Title
 \author{Tyler Bendele}
 % Author
-\date{February 22, 2022}
+\date{March 1, 2022}
 % Date
 \makeatletter
 \let\thetitle\@title
@@ -104,39 +103,35 @@ Tyler Bendele
 %%%%%%%%%%%%%%%
 \renewcommand{\thesection}{\arabic{section}}
 \section{Introduction}
-In this lab the goal is to find the time-domain response of a RLC Band Pass
-filter to the impulse and step inputs. This was done by first finding
-the transfer function and impulse response of the RLC Band Pass Filter
-provided in the pre-lab. Then through testing it in Python.
+The purpose of this lab is to practice using partial fraction expansion
+using the function scipy.signal.residue().
 \section{Equations}
-The equations shown below are the transfer function found from the RLC
-Band Pass Filter, the impulse Response found, and the Final Value Theorem.
-The Final Value Theorem is used to find the impulse as a function goes off
-to infinity. It only works on stable functions, that is transfer functions
-with roots that correspond to the left side of the y-axis.
+The first two equations used in lab, that are shown below, were found during the 
+prelab. The first is the transfer function and the second is the 
+step response that was found. The third equation is transfer function of the
+complicated equation given for part 2 of the lab. Finally, the fourth equation
+is the cosine method.
 \begin{equation}
-    H(s) = \frac{\frac{s}{RC}}{s^{2} + \frac{s}{RC} + \frac{1}{LC}}
+    H(s) = \frac{s^{2} + 6s + 12}{s^{3} + 10s^{2} + 24s}
 \end{equation}
 \begin{equation}
-    y(t) = ((-10355.6)e^{-5000t} + sin(18584t + 105.06)) \cdot u(t)
+    y(t) = (\frac{1}{2} - \frac{1}{2}e^{-4t} + e^{-6t}) \cdot u(t)
 \end{equation}
 \begin{equation}
-    \lim_{t\to \infty}\{f(t)\} = \lim_{s\to 0}\{sF(s)\}
+    H(s) = \frac{25250}{s^{6} + 18s^{5} + 218s^{4} + 2036s^{3} + 9085s^{2} + 25250s}
+\end{equation}
+\begin{equation}
+    y_{c} = 2|k|e^{\alpha t}cos(\omega t +	\angle k) \cdot u(t)
 \end{equation}
 
 \section{Methodology}
 \subsection{Part 1}
-Much of the work done for the lab, was actually done in the pre-lab, where
-we had to find the Transfer function and Impulse response of a given RLC
-Band Pass Filter. These equations that I ended up using are shown in 
-equations 1 and 2. To start I first added in the user defined functions: 
-the step response and the impulse response (the function shown in equation
-2). 
+For the first part, we graphed the partial fraction expansion equation
+that we found in the prelab. We then found the step response of the first 
+equation and compared it on the same graph. This was done using functions
+we learned from previous labs. 
 
 \begin{lstlisting}[language=Python]
-steps = 1e-6
-t = np.arange(0, 1.2e-3+steps, steps) 
-
 def u(t):          #step function
     y = np.zeros(t.shape)
     for i in range(len(t)):
@@ -147,18 +142,14 @@ def u(t):          #step function
     return y
 
 def impulse(t):
-    y = -10355.6 * np.exp(-5000*t) * np.sin(18584*t + 105.06) * u(t)
+    y = (0.5 - 0.5*np.exp(-4*t) + np.exp(-6*t))*u(t)
     return y
-\end{lstlisting}
-Next, I needed to compare my hand calculated impulse equation to the 
-one found from the impulse function using the Scipy library. I did this by
-entering the first equation in the following format and then graphing them
-on the same figure.
-\begin{lstlisting}[language=Python]
-um = [0, 10000, 0] # Creates a matrix for the numerator
-den = [1, 10000, 3.8037e8] # Creates a matrix for the denominator
 
-tout , yout = sig.impulse(( num , den) , T = t )
+
+num = [1, 6, 12] # Creates a matrix for the numerator
+den = [1, 10, 24] # Creates a matrix for the denominator
+
+tout , yout = sig.step(( num , den) , T = t )
 
 # Plot tout , yout
 plt.figure(figsize = (10, 7))
@@ -166,7 +157,7 @@ plt.subplot(2, 1, 1)
 plt.plot(t, impulse(t))
 plt.grid()
 plt.ylabel('Hand Calculated')
-plt.title('Impulse Response of a RLC Band Pass Filter')
+plt.title('Impulse Response')
 
 plt.subplot(2, 1, 2)
 plt.plot(tout, yout)
@@ -175,64 +166,137 @@ plt.ylabel('Scipy Impulse Solution')
 plt.xlabel('t')
 plt.show()
 \end{lstlisting}
-\subsection{Part 2}
-For Part 2 task 1, we had to find the step response using the Scipy
-step function. The code for this can be seen down below. I then had
-to find the step response in the Laplace domain of the Transfer function 
-using the Final Value Theorem for the second task in part 2. 
+For the third task we used the scipy.signal.residue() function on the 
+transfer function that we found, to find the partial fraction 
+expansion. The code for this was done using arrays to make up the
+numerator and denominator and then printed using the different variables
+of the residue function.
+
 \begin{lstlisting}[language=Python]
-tout2 , yout2 = sig.step((num, den), T=t)
+num2 = [0, 1, 6, 12] # Creates a matrix for the numerator
+den2 = [1, 10, 24, 0] # Creates a matrix for the denominator
+
+R, P, K = sig.residue(num2, den2)
+
+print(R)
+print(P)
+print(K)
+\end{lstlisting}
+\subsection{Part 2}
+In this section we practiced using the residue function on an equation
+that would be difficult to use partial fraction expansion on by hand. The
+transfer function of this equation can be seen in equation 3.
+\begin{lstlisting}[language=Python]
+num3 = [0, 0, 0, 0, 0, 0, 25250] # Creates a matrix for the numerator
+den3 = [1, 18, 218, 2036, 9085, 25250, 0] # Creates a matrix for the denominator
+
+R, P, K = sig.residue(num3, den3)
+
+print(R)
+print(P)
+print(K)
+\end{lstlisting}
+For the second task, we needed to use the cosine method for the results
+from the partial fraction expansion. The equation for the cosine method
+can be seen in equation 4. I did this by again creating an
+array for the numerator and the denominator of the fractions of the results
+from the residue function. However I specifically only did this with the
+mixed number results from the function. I then put these arrays into a 
+user defined function that inputted each entry from the arrays into its
+separate cosine method equation. This was done using a for loop to go
+through each entry in the arrays and add it on to the previous result in the
+array. Finally I combined all of these cosine functions found with the two
+results that didn't involve imaginary numbers to get the final equation which was then graphed. In the third task of part 2, the third equation was
+graphed again, using the step response this time. These two graphs, which
+should be identical, were put on the same figure for comparison.
+\begin{lstlisting}[language=Python]
+resn1 = [- 0.48557692+0.72836538j, -0.48557692-0.72836538j,
+        0.09288674-0.04765193j, 0.09288674+0.04765193j]
+
+resd1 = [-3 + 4.j,  -3. -4.j, -1.+10.j, -1.-10.j]
+
+def cosmethod(d, n):
+    y = 0
+    for i in range(len(d)):
+        k = np.abs(n[i])
+        ka = np.angle(n[i])
+        a = np.real(d[i])
+        o = np.imag(d[i])
+        y += k*np.exp(a*t)*np.cos(o*t + ka)
+    return y
+
+t = np.arange(0, 4.5 + steps, steps)
+
+y = (cosmethod(resd1, resn1) + 1 - 0.21461963*np.exp(-10*t))*u(t)
+
+# Part 2 Task 3
+den4 = [1, 18, 218, 2036, 9085, 25250]
+tout2, yout2 = sig.step((num3, den4), T = t)
 
 plt.figure(figsize = (10, 7))
-plt.subplot(1, 1, 1)
-plt.plot(tout2, yout2)
+plt.subplot(2, 1, 1)
+plt.plot(t, y)
 plt.grid()
-plt.ylabel('Scipy Step Response') 
+plt.ylabel ('hand solved')
+
+plt.subplot (2, 1, 2)
+plt.plot (tout2, yout2)
+plt.grid()
+plt.ylabel('scipy solved')
 plt.xlabel('t')
 plt.show()
 \end{lstlisting}
-
 \section{Results}
 
 \subsection{Part 1}
 \begin{figure}[H]
 \begin{center}
 \caption{Part 1, Tasks 1 \& 2, Impulse Response}
-\includegraphics[scale=0.50]{part1pics.png}
+\includegraphics[scale=0.50]{part1graphes.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Part 1, Tasks 3, Printed Partial Fraction Expansion Results}
+\includegraphics[scale=0.80]{Part1printedresult.png}
 \end{center}
 \end{figure}
 
 \subsection{Part 2}
 \begin{figure}[H]
 \begin{center}
-\caption{Part 2, Task 1, Step Response}
-\includegraphics[scale=0.50]{part2pics.png}
+\caption{Part 2, Task 1, Printed PFE of equation 3}
+\includegraphics[scale=0.80]{Part2printedresult.png}
 \end{center}
 \end{figure}
 
-\subsection{Part 2 Task 2 \& Task 3}
-When applying the Final Value Theorem to the transfer function I found
-that it also shows the step function going to zero. This shows that the function is
-stable. Comparing this result to the graphs from part 1, it does confirm
-that it is going to zero as t goes to infinity.
+\begin{figure}[H]
+\begin{center}
+\caption{Part 2, Tasks 2 \& 3}
+\includegraphics[scale=0.50]{part2graphes.png}
+\end{center}
+\end{figure}
+
 
 \section{Error Analysis}
-This time around I don't think I had any errors. I did try doing the lab,
-using more functions in order to do it completely using variables, but it 
-seemed to be pretty difficult doing it that way.
+I don't believe I had too many errors this time around. The only problems I had were getting the
+step response function to work and figuring out the syntax for the residue function. I was able to
+fix the first thing by changing the size of the steps. As for the syntax of the residue function,
+I was eventually able to find the syntax through a little bit of researching
+and checking.
 
 \section{Questions}
-1. Explain the result of the Final Value Theorem from Part 2 Task 2 in
-terms of the physical circuit components.
+1. For a non-complex pole residue term, you can still use the cosine
+method, explain why this works.
 
-Since the bottom part of the transfer function had negative roots, meaning
-both discontinuities were on the left side of the y-axis, the Final Value
-Theorem was a valid operation of the function. This allowed the result to
-give a zero, showing that the function was stable. I want to say that this result from the
-Final Value Theorem means that capacitance and
-inductance were balanced. If there was too 
-much capacitance, it would caused the filter
-to be unstable.
+It works because the imaginary part and the angle from the mixed number
+make up the the input to the cosine function in the cosine method. However,
+this input to the cosine function is zero since the imaginary part is zero
+in the case of a non-complex pole and the angle is also zero. This makes
+the cosine part equal to 1. The rest of the cosine method is based on the
+magnitude and real part, which end up making up the normal result of a
+non-complex residue term.
 
 2. Leave any feedback on the clarity of the expectations, instructions, and deliverables.
 
@@ -240,13 +304,11 @@ It seems like everything in this lab was pretty clear on the clarity of the
 expectations, instructions, and deliverables. 
 
 \section{Conclusion}
-This lab was pretty cool because I was able to find the impulse response
-through several calculations and then compare it to the Scipy impulse
-response function. They both ended up being identical. It was also interesting to learn
-more about how the Final Value Theorem works. I learned it is useful in determining
-how stable a function is and if it is stable then most of the time it we also know it
-goes to zero as it goes to infinity. I don't believe I have any recommendations for
-future labs. 
+This lab was very useful because we learned how to use the residue
+function. This knowledge allows us to find the partial fraction expansion
+of more complicated signals that otherwise would have been impossible to
+do by hand. It also helped me practice in using the cosine method to find the
+step response of complicated complex pole-residue terms.
 
 \end{document}
 %This template was created by Roza Aceska.
