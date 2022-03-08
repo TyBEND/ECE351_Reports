@@ -1,0 +1,358 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                              %
+% Tyler Bendele                                                %
+% ECE351 and Section 51                                        %
+% Lab 7                                                        %
+% Due Date: March 8, 2022                                      %
+% Block Diagram and System Stability                           %
+%                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% DOCUMENT PREAMBLE %%%
+\documentclass[12pt]{report}
+\usepackage[english]{babel}
+%\usepackage{natbib}
+\usepackage{url}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0,0.95}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+backgroundcolor=\color{backcolour},
+commentstyle=\color{codegreen},
+keywordstyle=\color{codeblue},
+numberstyle=\tiny\color{codegray},
+stringstyle=\color{codegreen},
+basicstyle=\ttfamily\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbers=left,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2
+}
+\lstset{style=mystyle}
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+\title{Lab 7: Block Diagrams and System Stability}
+% Title
+\author{Tyler Bendele}
+% Author
+\date{March 1, 2022}
+% Date
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{\thetitle}
+\cfoot{\thepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\begin{titlepage}
+\centering
+\vspace*{0.5 cm}
+% \includegraphics[scale = 0.075]{bsulogo.png}\\[1.0 cm] % 
+
+\begin{center}    \textsc{\Large   ECE 351 - Section \#51 }\\[2.0 cm]
+\end{center}% University Name
+\textsc{\Large Signals and Systems  }\\[0.5 cm] % Course 
+
+\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+{ \huge \bfseries \thetitle}\\
+\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+% \emph{Submitted To:}\\
+% Name\\
+% Affiliation\\
+%contact info\\
+\end{flushleft}
+\end{minipage}~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Submitted By :} \\
+Tyler Bendele
+\end{flushright}
+\end{minipage}\\[2 cm]
+% \includegraphics[scale = 0.5]{PICMathLogo.png}
+\end{titlepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\tableofcontents
+\pagebreak
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\renewcommand{\thesection}{\arabic{section}}
+\section{Introduction}
+The purpose of this lab is to analyze block diagrams by hand and learn how
+to use python functions to perform the same analysis on those diagrams.
+In this lab we will also discuss the stability of the block diagram
+for both the open and closed responses.
+\section{Equations}
+In the first three equations, I break up the given equations for G, A, and 
+B into their roots and poles. The fourth equation shows the equation from part
+1 task 3, where I find the the open loop transfer function.
+The fifth equation shows the closed loop transfer function split up into 
+the parts of the first 3 equations based on their numerators and
+denominators. The sixth and final equation show the closed loop response
+broken down into its poles and roots that python calculates using the
+scipy.signal.tf2zpk() function.
+\begin{equation}
+    G(s) = \frac{s + 9}{(s - 8)(s + 2)(2 + 4)}
+\end{equation}
+\begin{equation}
+    A(s) = \frac{s+4}{(s+3)(s+1)}
+\end{equation}
+\begin{equation}
+    B(s) = (s+12)(s+14)
+\end{equation}
+\begin{equation}
+    \frac{Y_{Open}(s)}{X(s)} = \frac{(s+9)(s+4)}{(s-8)(s+2)(s+4)(s+3)(s+1)}
+\end{equation}
+\begin{equation}
+    \frac{Y_{Closed}(s)}{X(s)} = \frac{(numA)(numG)}{(denA)(denG) + (denA)(numB)(numG)}
+\end{equation}
+\begin{equation}
+    \frac{Y_{Closed}(s)}{X(s)} = \frac{(s+9)(s+4)}{(s+5.162-9.518)(s+5.162+9.518)(s+6.175)(s+3)(s+1)}
+\end{equation}
+\subsection{Part 1}
+For the first task, I just separated the functions of G, B, and A into
+their poles and roots. These equations can also be seen in the first
+3 equations in the equation section. For the second task I practiced using
+the scipy.signal.tf2zpk() and numpy.roots() functions to find the poles
+and roots of the functions using python. The code for this can be seen down
+below.
+
+\begin{lstlisting}[language=Python]
+num = [0, 0, 1, 9] # Creates a matrix for the numerator
+den = [1, -2, -40, -64] # Creates a matrix for the denominator
+
+z, p, k= sig.tf2zpk(num, den)
+print(z)
+print(p)
+print(k)
+
+num2 = [0, 1, 4] # Creates a matrix for the numerator
+den2 = [1, 4, 3] # Creates a matrix for the denominator
+
+z, p, k= sig.tf2zpk(num2, den2)
+print(z)
+print(p)
+print(k)
+
+num3 = [1, 26, 168] # Creates a matrix for the numerator
+
+b = np.roots(num3)
+print(b)
+\end{lstlisting}
+The third task involved writing the open loop equation of the block diagram
+in factored form, which can be seen in equation number 4 of the equation
+section. Task 4 asks if the open loop equation is stable.
+In that equation it can be seen that the open loop equation isn't stable
+because it has a positive root. For the fifth task, I find the step
+response of the open loop response and graph it. Task 6, asks if the
+step response supports my answer for task 4. It does in fact support my
+answer as the plot ends up going off towards infinity showing that it isn't
+stable.
+\begin{lstlisting}[language=Python]
+num4 = sig.convolve([1,9] , [1,4])
+print('Numerator =', num4)
+
+den4 = sig.convolve([1, -2, -40, -64] , [1, 4, 3])
+print('Denominator =', den4)
+
+tout, yout = sig.step((num4, den4), T=t)
+
+plt.figure(figsize = (10, 7))
+plt.plot(tout, yout)
+plt.grid()
+plt.ylabel('Step response')
+plt.xlabel('t')
+plt.title('Open Loop Step Response')
+plt.show()
+\end{lstlisting}
+\subsection{Part 2}
+For the first task in part 2, I show the result from splitting up the
+closed loop response into the components of the numerators and denominators
+of the original three equations given. This equation can be seen as the 
+fifth equation in the equation section. For the second task I convolved the
+different numerators and denominators to form that function using the
+convolve scipy function. I then used the tf2zpk function to find the
+poles and roots of the closed loop transfer function. The code for this can
+be seen down below. The equation that results from this, can be seen as the
+sixth equation.
+\begin{lstlisting}[language=Python]
+numA = [1, 4]
+numG = [1, 9]
+numB = [1, 26, 168]
+denA = [1, 4, 3]
+denG = [1, -2, -40, -64]
+
+num5 = sig.convolve(numA, numG)
+print(num5)
+
+den5 = sig.convolve(denA, denG)
+print(den5)
+
+num6 = sig.convolve(numB, numG)
+den6 = sig.convolve(num6, denA)
+print(den6)
+
+den7 = den5 + den6
+print(den7)
+
+z, p, k= sig.tf2zpk(num5, den7)
+print(z)
+print(p)
+print(k)
+\end{lstlisting}
+The third task asks if the closed-loop transfer function is stable.
+As seen in the sixth equation, there aren't any real negative roots so
+the closed-loop response transfer function is stable. In the fourth
+task I find the step response of the closed-loop equation. The plot looks
+like it begins to level off as it goes towards infinity, so it does support
+the claim that it is stable.
+\begin{lstlisting}[language=Python]
+tout2, yout2 = sig.step((num5, den7), T=t)
+
+plt.figure(figsize = (10, 7))
+plt.plot(tout2, yout2)
+plt.grid()
+plt.ylabel('Step response')
+plt.xlabel('t')
+plt.title('Closed Loop Step Response')
+plt.show()
+\end{lstlisting}
+\section{Results}
+\subsection{Part 1}
+\begin{figure}[H]
+\begin{center}
+\caption{Part 1, Tasks 2, Equation G Expanded}
+\includegraphics[scale=0.80]{eqGroot.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Part 1, Tasks 2, Equation A Expanded}
+\includegraphics[scale=0.80]{eqAroot.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Part 1, Tasks 2, Equation B Expanded}
+\includegraphics[scale=0.80]{eqBroot.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Part 1, Tasks 4, Open Loop Convolve Output}
+\includegraphics[scale=0.80]{openloopOutput.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Part 1, Task 4, Open Loop Step Response}
+\includegraphics[scale=0.50]{openloop.png}
+\end{center}
+\end{figure}
+
+\subsection{Part 2}
+\begin{figure}[H]
+\begin{center}
+\caption{Part 2, Task 2, Closed Loop Output}
+\includegraphics[scale=0.80]{pt2task2.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Part 2, Tasks 4, Closed Loop Step Response}
+\includegraphics[scale=0.50]{closedloop.png}
+\end{center}
+\end{figure}
+
+
+\section{Error Analysis}
+I did not have any errors occur this lab. I did however have confusion
+starting the lab, because I didn't know there was a difference
+between the closed and open loop transfer functions. 
+
+\section{Questions}
+1. In Part 1 Task 5, why does convolving the factored terms using scipy.signal.convolve()
+result in the expanded form of the numerator and denominator? Would this work with your
+user-defined convolution function from Lab 3? Why or why not?
+
+Convolving the factored terms combines the two functions, which is exactly what happens
+when you multiply two factored terms together, they combine to create one function or
+polynomial. This would not work on the the user-defined functions from lab 3, because
+those equations were created using the step and ramp functions which multiply and combine
+together differently.
+
+2. Discuss the difference between the open- and closed-loop systems from Part 1 and Part 
+2. How does stability differ for each case, and why?
+
+The open loop takes the most direct route through the block diagram, and only includes
+those terms in its response transfer equation. The closed loop system on the other hand
+takes into account everything in the block diagram including the part that loops back on
+to itself. Generally, closed loop systems are used to make the system more stable
+otherwise open loop systems would be used more often since they are faster. In the
+specific case of this lab, the closed loop system ended up being stable whereas the
+the open loop part wasn't. I believe closed loop systems are more stable because
+the system is able to loop back on to itself which allows it to reprocess problems
+that otherwise would have risen only going through the system once.
+
+3. What is the difference between scipy.signal.residue() used in Lab 6 and
+scipy.signal.tf2zpk() used in this lab?
+
+The scipy.signal.tf2zpk() function finds the poles and roots of the transfer function,
+which is useful in confirming the denominators found when performing the
+scipy.signal.residue() function.
+The scipy.signal.residue() performs partial fraction expansion. This allows us to find
+the step response equation.
+
+4. Is it possible for an open-loop system to be stable? What about for a closed-loop 
+system to be unstable? Explain how or how not for each.
+
+I think both are definitely possible. Whether a system is stable or unstable is more
+dependent on the different subsystems that are used. Since, the closed-loop system usually
+involves a feedback path, it is more likely to be stable because of how the equation for
+a feedback is setup.
+
+5. Leave any feedback on the clarity/usefulness of the purpose, deliverables, and 
+expectations for this lab.
+
+I think everything the deliverables, purpose, and expectations were pretty clear for the
+lab. The only thing I had confusion on was that there was a difference between closed
+loop and open loop systems, which was cleared up.
+
+\section{Conclusion}
+I believe this lab was pretty useful in teaching methods for analyzing block diagrams.
+I was able to learn about the difference between open and closed loop systems and how
+their stability compares. I also learned methods for analyzing transfer functions by
+breaking them up into factored form.
+
+\end{document}
+%This template was created by Roza Aceska.
