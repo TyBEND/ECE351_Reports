@@ -1,0 +1,456 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                              %
+% Tyler Bendele                                                %
+% ECE351 and Section 51                                        %
+% Lab 9                                                        %
+% Due Date: March 29, 2022                                     %
+% Fast Fourier Transform                                       %
+%                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% DOCUMENT PREAMBLE %%%
+\documentclass[12pt]{report}
+\usepackage[english]{babel}
+%\usepackage{natbib}
+\usepackage{url}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0,0.95}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+backgroundcolor=\color{backcolour},
+commentstyle=\color{codegreen},
+keywordstyle=\color{codeblue},
+numberstyle=\tiny\color{codegray},
+stringstyle=\color{codegreen},
+basicstyle=\ttfamily\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbers=left,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2
+}
+\lstset{style=mystyle}
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+\title{Lab 9: Fast Fourier Transform}
+% Title
+\author{Tyler Bendele}
+% Author
+\date{March 29, 2022}
+% Date
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{\thetitle}
+\cfoot{\thepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\begin{titlepage}
+\centering
+\vspace*{0.5 cm}
+% \includegraphics[scale = 0.075]{bsulogo.png}\\[1.0 cm] % 
+
+\begin{center}    \textsc{\Large   ECE 351 - Section \#51 }\\[2.0 cm]
+\end{center}% University Name
+\textsc{\Large Signals and Systems  }\\[0.5 cm] % Course 
+
+\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+{ \huge \bfseries \thetitle}\\
+\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+% \emph{Submitted To:}\\
+% Name\\
+% Affiliation\\
+%contact info\\
+\end{flushleft}
+\end{minipage}~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Submitted By :} \\
+Tyler Bendele
+\end{flushright}
+\end{minipage}\\[2 cm]
+% \includegraphics[scale = 0.5]{PICMathLogo.png}
+\end{titlepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\tableofcontents
+\pagebreak
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\renewcommand{\thesection}{\arabic{section}}
+\section{Introduction}
+The purpose of this lab is to become familiar with using Fast Fourier
+Transforms. Along with becoming familiar with Fast Fourier Transforms using
+Python, we will also be introduced to cleaning up these bode plots as well.
+\section{Equations}
+The equations shown down below are the expressions that were tested by the
+Fast Fourier Transform function. The equation used for each task is 
+represented by its respected task number.
+\begin{equation}
+    x_{1} = cos(2\pi t)
+\end{equation}
+\begin{equation}
+    x_{2} = 5sin(2\pi t)
+\end{equation}
+\begin{equation}
+    x_{3} = 2cos((2\pi \cdot 2t) - 2) + sin^{2}((2\pi \cdot 6t) + 3)
+\end{equation}
+
+\section{Methodology}
+\subsection{Task 1}
+To start, I first needed to create the user defined code for the Fast
+Fourier Transform function. Most of the code was provided for this one.
+I then needed to plot equation 1. I found the variables for the magnitude,
+frequency, and angle of equation 1 using the Fast Fourier Transform
+function with equation 1 as the input. The code for the user defined
+function and the the first plot can be seen down below.
+\begin{lstlisting}[language=Python]
+steps = 1e-3
+t = np.arange(1e-5, 2, steps)
+fs = 100
+
+def fastft(x):
+    N = len( x ) # find the length of the signal
+    X_fft = scipy.fftpack.fft(x) # perform the fast Fourier transform (fft)
+    X_fft_shifted = scipy.fftpack.fftshift(X_fft) 
+        # shift zero frequency components
+        # to the center of the spectrum
+    freq = np.arange (-N/2 , N/2) * fs / N 
+        # compute the frequencies for the output
+        # signal , (fs is the sampling frequency a needs to be defined previously 
+        #  in your code
+    X_mag = np.abs( X_fft_shifted ) / N # compute the magnitudes of the signal
+    X_phi = np.angle( X_fft_shifted ) # compute the phases of the signal
+# ----- End of user defined function ----- #    
+    return freq, X_mag, X_phi
+
+# Task 1
+x1 = np.cos(2*np.pi*t)
+freq1, X_mag1, X_phi1 = fastft(x1)
+
+
+plt.figure(figsize=(12,8))
+plt.subplot(3,2,(1,2))
+plt.plot(t,x1)
+plt.title('Task 1 - User Definited FFT of x1(t)')
+plt.ylabel('x(t)')
+plt.xlabel('t[s]')
+plt.grid(True)
+
+plt.subplot(3,2,3)
+plt.stem(freq1, X_mag1)
+plt.ylabel('|x(t)|') 
+plt.grid(which='both')
+
+plt.subplot(3,2,4)
+plt.stem(freq1, X_mag1) 
+plt.xlim(-2,2)
+plt.grid(which='both')
+
+plt.subplot(3,2,5)
+plt.stem(freq1, X_phi1)
+plt.xlabel('f[Hz]') 
+plt.ylabel('/_x(t)') 
+
+plt.subplot(3,2,6)
+plt.stem(freq1, X_phi1)
+plt.xlim(-2,2)
+plt.xlabel('f[Hz]') 
+plt.ylabel('/_x(t)') 
+plt.show()
+\end{lstlisting}
+\newpage
+\subsection{Tasks 2 \& 3}
+For this section I did the exact same thing from task 1, except I used equations
+2 and 3 instead.
+\begin{lstlisting}[language=Python]
+# Task 2
+x2 = 5*np.sin(2*np.pi*t)
+freq2, X_mag2, X_phi2 = fastft(x2)
+
+plt.figure(figsize=(12,8))
+plt.subplot(3,2,(1,2))
+plt.plot(t,x2)
+plt.title('Task 2 - User Definited FFT of x2(t)')
+plt.ylabel('x(t)')
+plt.xlabel('t[s]')
+plt.grid(True)
+
+plt.subplot(3,2,3)
+plt.stem(freq2, X_mag2)
+plt.ylabel('|x(t)|') 
+plt.grid(which='both')
+
+plt.subplot(3,2,4)
+plt.stem(freq2, X_mag2) 
+plt.xlim(-2,2)
+plt.grid(which='both')
+
+plt.subplot(3,2,5)
+plt.stem(freq2, X_phi2)
+plt.xlabel('f[Hz]') 
+plt.ylabel('/_x(t)') 
+
+plt.subplot(3,2,6)
+plt.stem(freq2, X_phi2)
+plt.xlim(-2,2)
+plt.xlabel('f[Hz]') 
+plt.ylabel('/_x(t)') 
+plt.show()
+
+# Task 3
+x3 = 2*np.cos((2*np.pi*6*t) - 2) + (np.sin((2*np.pi*6*t) + 3) ** 2) 
+freq3, X_mag3, X_phi3 = fastft(x3)
+
+
+plt.figure(figsize=(12,8))
+plt.subplot(3,2,(1,2))
+plt.plot(t,x3)
+plt.title('Task 2 - User Definited FFT of x3(t)')
+plt.ylabel('x(t)')
+plt.xlabel('t[s]')
+plt.grid(True)
+
+plt.subplot(3,2,3)
+plt.stem(freq3, X_mag3)
+plt.ylabel('|x(t)|') 
+plt.grid(which='both')
+
+plt.subplot(3,2,4)
+plt.stem(freq3, X_mag3) 
+plt.xlim(-2,2)
+plt.grid(which='both')
+
+plt.subplot(3,2,5)
+plt.stem(freq3, X_phi3)
+plt.xlabel('f[Hz]') 
+plt.ylabel('/_x(t)') 
+
+plt.subplot(3,2,6)
+plt.stem(freq3, X_phi3)
+plt.xlim(-2,2)
+plt.xlabel('f[Hz]') 
+plt.ylabel('/_x(t)') 
+plt.show()
+\end{lstlisting}
+\subsection{Task 4}
+For the fourth task I needed to create a version of the Fast Fourier 
+Transform function that cleans up all of the noise that was displayed from 
+the last one. This was done by using a for loop and an if statement to see
+at what points the magnitude is insignificant and then set the angle to 
+zero. I then graphed the three functions again just like before except 
+using the new clean function instead.
+
+\begin{lstlisting}[language=Python]
+# Task4
+def cleanfft(x):
+    N = len( x ) # find the length of the signal
+    X_fft = scipy.fftpack.fft(x) # perform the fast Fourier transform (fft)
+    X_fft_shifted = scipy.fftpack.fftshift(X_fft) # shift zero frequency components
+                                                 # to the center of the spectrum
+    freq = np.arange (-N/2 , N/2) * fs / N # compute the frequencies for the output
+                                           # signal , (fs is the sampling frequency and
+                                           # needs to be defined previously in your code
+    X_mag = np.abs( X_fft_shifted ) / N # compute the magnitudes of the signal
+    X_phi = np.angle( X_fft_shifted ) # compute the phases of the signal
+    
+    for i in range(len(X_phi)):
+        if abs(X_mag[i]) < 1e-10:
+            X_phi[i] = 0
+# ----- End of user defined function ----- #    
+    return freq, X_mag, X_phi
+\end{lstlisting}
+
+\subsection{Task 5}
+For the last task, I tested the clean Fast Fourier Transform function on 
+the square wave from lab 8. I did this by copying the ak, bk, and summation
+functions from lab 8. I then inputted an N size of 15 into the square
+function and then put that function into the clean Fast Fourier Transform
+function.
+\begin{lstlisting}[language=Python]
+# Task 5
+t = np.arange(0, 16, steps)
+def ak(k):
+    a = np.zeros(t.shape)
+    return a
+
+def bk(k):
+    b = np.zeros(t.shape)
+    b = 2/(k*np.pi) * (1 - np.cos(k*np.pi))
+    return b
+
+def x(t,k):
+    T = 8
+    for i in range(k):
+        if i == 0:
+            x = (1/2)*ak(i)
+        else:
+            x += ak(i) + bk(i)*np.sin((i*2*np.pi*t)/T)
+    return x 
+
+x15 = x(t,15)
+freqc15, X_magc15, X_phic15 = cleanfft(x15)
+
+plt.figure(figsize=(12,8))
+plt.subplot(3,2,(1,2))
+plt.plot(t,x15)
+plt.title('Task 2 - Clean User Definited FFT of Square Wave from Lab 8')
+plt.ylabel('x(t)')
+plt.xlabel('t[s]')
+plt.grid(True)
+
+plt.subplot(3,2,3)
+plt.stem(freqc15, X_magc15)
+plt.ylabel('|x(t)|') 
+plt.grid(which='both')
+
+plt.subplot(3,2,4)
+plt.stem(freqc15, X_magc15) 
+plt.xlim(-2,2)
+plt.grid(which='both')
+
+plt.subplot(3,2,5)
+plt.stem(freqc15, X_phic15)
+plt.xlabel('f[Hz]') 
+plt.ylabel('/_x(t)') 
+
+plt.subplot(3,2,6)
+plt.stem(freqc15, X_phic15)
+plt.xlim(-2,2)
+plt.xlabel('f[Hz]') 
+plt.ylabel('/_x(t)') 
+plt.show()
+\end{lstlisting}
+
+\section{Results}
+\subsection{Part 1}
+\begin{figure}[H]
+\begin{center}
+\caption{Task 1}
+\includegraphics[scale=0.50]{task1.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task 2}
+\includegraphics[scale=0.50]{task2.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task 3}
+\includegraphics[scale=0.50]{task3.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task 1 Clean}
+\includegraphics[scale=0.50]{task1clean.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task 2 Clean}
+\includegraphics[scale=0.50]{task2clean.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task 3 Clean}
+\includegraphics[scale=0.50]{task3clean.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task 5 Clean Square Wave}
+\includegraphics[scale=0.50]{squareClean.png}
+\end{center}
+\end{figure}
+
+\section{Error Analysis}
+This lab went pretty smoothly with almost no errors. The only problem
+I had was in the beginning when I thought I needed to create two
+different timer periods for each of the different equations
+so that I could account for the zoomed in plot. However,
+I found out it would be easier just to use the normal time period and
+then just limit the x value on the graph so that it zooms in.
+
+\section{Questions}
+1. What happens if fs is lower? If it is higher? fs in your report must span a few orders of magnitude.
+
+When fs is lower the points for the magnitude and angle are much closer together,
+so the plot is more narrow. When fs is higher the points are more spread out,
+so the plot is wider. It is worth noting that it seems to take quite a bit
+for this to happen. That is, I had to move by powers of 10 to make much of
+a difference in how much it spread out.
+
+2. What difference does eliminating the small phase magnitudes make?
+
+It actually makes a humongous difference. At least in my graphs, it got
+rid of a majority of the noise that was affecting the angle. Because of
+this the angle is much clearer in the clean versions.
+
+3. Verify your results from Tasks 1 and 2 using Fourier transforms of
+cosine and sine. Explain why your results are correct. You will need the
+transforms in terms of Hz, not rad/s. For example, the Fourier transform
+of cosine (in Hz) is:
+\begin{equation}
+    F\{cos(2\pi f_{0}t)\} = \frac{1}{2}[\delta(f − f_{0}) + \delta(f + f_{0})]
+\end{equation}
+The Fourier transform of the cosine function can definitely be verified.
+Using equation 4 shown above, it can be seen that the Fourier Transform
+of the cosine function would have delta functions at 1 and -1 for the
+magnitude. This is exactly what is shown on either of the graphs made
+for task one. As for the sine function it is very similar to the Fourier
+Transform shown in equation 4. The differences are that it has a j in
+front and a subtraction sign instead of an addition sign. This difference
+is also shown in the graph since the phases switch which one is pointing
+up and which one is pointing down.
+
+4. Leave any feedback on the clarity of lab tasks, expectations, and
+deliverables.
+
+I think for this lab I was a little confused, starting out, on how the
+tasks should be completed. However, I was able to figure out what I was
+doing wrong.
+
+\section{Conclusion}
+I think this lab was very useful in learning about how to perform
+Fourier series using Python. I also think it was helpful to know that a
+plot can be cleaned up really smoothly if we only focus on the important
+parts. I thought it was also really helpful to compare the results of the
+zoomed in plots to the actual calculated Fourier Series Transforms. It
+allowed me to get a better idea of how to read those kinds of plots.
+
+\end{document}
+%This template was created by Roza Aceska.
