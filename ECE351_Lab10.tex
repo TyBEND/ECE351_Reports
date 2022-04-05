@@ -1,0 +1,331 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                              %
+% Tyler Bendele                                                %
+% ECE351 and Section 51                                        %
+% Lab 10                                                       %
+% Due Date: April 5, 2022                                      %
+% Frequency Response                                           %
+%                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% DOCUMENT PREAMBLE %%%
+\documentclass[12pt]{report}
+\usepackage[english]{babel}
+%\usepackage{natbib}
+\usepackage{url}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0,0.95}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+backgroundcolor=\color{backcolour},
+commentstyle=\color{codegreen},
+keywordstyle=\color{codeblue},
+numberstyle=\tiny\color{codegray},
+stringstyle=\color{codegreen},
+basicstyle=\ttfamily\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbers=left,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2
+}
+\lstset{style=mystyle}
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+\title{Lab 10: Frequency Response}
+% Title
+\author{Tyler Bendele}
+% Author
+\date{April 5, 2022}
+% Date
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{\thetitle}
+\cfoot{\thepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\begin{titlepage}
+\centering
+\vspace*{0.5 cm}
+% \includegraphics[scale = 0.075]{bsulogo.png}\\[1.0 cm] % 
+
+\begin{center}    \textsc{\Large   ECE 351 - Section \#51 }\\[2.0 cm]
+\end{center}% University Name
+\textsc{\Large Signals and Systems  }\\[0.5 cm] % Course 
+
+\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+{ \huge \bfseries \thetitle}\\
+\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+% \emph{Submitted To:}\\
+% Name\\
+% Affiliation\\
+%contact info\\
+\end{flushleft}
+\end{minipage}~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Submitted By :} \\
+Tyler Bendele
+\end{flushright}
+\end{minipage}\\[2 cm]
+% \includegraphics[scale = 0.5]{PICMathLogo.png}
+\end{titlepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\tableofcontents
+\pagebreak
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\renewcommand{\thesection}{\arabic{section}}
+\section{Introduction}
+The purpose of this lab is to become familiar with using the frequency
+response tools and Bode plots in Python.
+\section{Equations}
+The first equation shown down below is the the transfer function that
+the RLC circuit gave. The next two equations are the magnitude and 
+phase functions found from the Transfer function during the prelab
+and used for the first part of the lab. The fourth equation is the
+signal that was used for the second part of the lab.
+\begin{equation}
+    H(s) = \frac{\frac{1}{RC}s}{s^{2} + \frac{1}{RC}s + \frac{1}{LC}}
+\end{equation}
+\begin{equation}
+    |H(j\omega)| = \frac{\frac{1}{RC}\omega}{\sqrt{(-\omega^{2} + \frac{1}{LC})^{2}+(\frac{1}{RC}\omega)^2}}
+\end{equation}
+\begin{equation}
+    \angle H(j\omega) = 90^{\circ} - tan^{-1}(\frac{\frac{1}{RC}w}{(-\omega + \frac{1}{LC})})
+\end{equation}
+\begin{equation}
+     x(t) = cos(2\pi \cdot 100t) + cos(2\pi \cdot 3024t) + sin(2\pi \cdot 50000t)
+\end{equation}
+\section{Methodology}
+\subsection{Part 1}
+For the first task I created user defined functions of the magnitude and
+phase expressions that I found in the prelab. Since I needed to plot on the
+logarithmic scale I made sure to convert the magnitude to decibels and
+the phase to degrees. I then plotted the magnitude and phase on different
+graphs from \begin{math} 10^{3} rad/s \le \omega \le 10^{6} rad/s 
+\end{math} using the matplotlib.pyplot.semilogx() function to plot. 
+The code for this can be seen down below.
+\begin{lstlisting}[language=Python]
+# Part 1 Task 1
+steps = 1
+w = np.arange(1e3, 1e6 +steps, steps)
+
+def hm(w, R, L, C):
+    m = (w/(R*C)) / np.sqrt((w**4) + ((((1/(R*C))**2) - (2/L*C))*(w**2)) + ((1/(L*C))**2))
+    m = 20*np.log10(m)
+    return m
+
+
+def hp(w, R, L, C):
+    a = np.pi/2 - np.arctan(((w/(R*C)))/((1/(L*C)) - (w**2)))
+    a = np.degrees(a)
+    for i in range(len(w)):
+        if a[i] > 90:
+            a[i] = a[i]-180
+    return a
+
+R = 1000
+L = 27e-3
+C = 100e-9
+
+h1m = hm(w, R, L, C)
+h1p = hp(w, R, L, C)
+
+plt.figure(figsize=(10,7))
+plt.subplot(2,1,1)
+plt.semilogx(w, h1m)
+plt.title('Magnitude and Phase of Transfer Function')                           
+plt.ylabel('|H(jw)|')
+plt.grid(True)
+
+plt.subplot(2,1,2)
+plt.semilogx(w, h1p)
+plt.grid(True)
+plt.xlabel('w') 
+plt.ylabel('/_H(jw)') 
+plt.show()
+\end{lstlisting}
+The second task for part one just had us plot the functions again
+except by using the scipy.signal.bode function. Then the third task
+had us plot the function in Hz instead of rad/s, which was done using
+the control package Transfer Function.
+\begin{lstlisting}[language=Python]
+# P1 Task 2
+sys = scipy.signal.TransferFunction( [1/(R*C), 0], [1, 1/(R*C), 1/(L*C)])
+w1, mag1, phase1 = scipy.signal.bode(sys, w)
+
+plt.figure(figsize=(10,7))
+plt.subplot(2,1,1)
+plt.semilogx(w1, mag1)
+plt.title('Magnitude and Phase of Transfer Function using Bode Function')                           
+plt.ylabel('|H(jw)|')
+plt.grid(True)
+
+plt.subplot(2,1,2)
+plt.semilogx(w1, phase1)
+plt.grid(True)
+plt.xlabel('w') 
+plt.ylabel('/_H(jw)') 
+plt.show()
+
+# P1 Task 3
+num1 = [1/(R*C), 0]
+den1 = [1, 1/(R*C), 1/(L*C)]
+
+sys = con.TransferFunction ( num1 , den1 )
+_ = con.bode( sys , w , dB = True , Hz = True , deg = True , Plot = True )
+# use _ = ... to suppress the output
+\end{lstlisting}
+
+\subsection{Part 2}
+For the second part of the lab, we are given a signal to plot
+which is the expression shown in equation 4. This signal is plotted with
+a range of \begin{math} 0 \le t \le 0.01s \end{math} and a step size of
+1/fs. Finally, for the second, third, and fourth tasks of part 2,
+I am tasked with passing this signal through the RLC filter from the
+first part. This was done by first converting the transfer function into
+the z domain using the scipy.signal.bilinear() function. I was then able
+to pass the signal through the filter using the scipy.signal.lfilter()
+function. Afterwards, I plotted the function.
+\begin{lstlisting}[language=Python]
+# Part 2 task 1
+fs = 50000
+steps = 1/fs
+t = np.arange(0, 0.01 + steps, steps)
+
+x = np.cos(2*np.pi*100*t) + np.cos(2*np.pi*3024*t) + np.sin(2*np.pi*50000*t)
+
+plt.figure(figsize=(10,7))
+plt.subplot(1,1,1)
+plt.plot(t, x)
+plt.grid(True)
+plt.title('Three Frequency Plot')                           
+plt.ylabel('x(t)')
+plt.xlabel('t')
+plt.show()
+
+# P2 Tasks 2, 3, and 4
+
+num2, den2 = scipy.signal.bilinear(num1, den1, fs)
+y = scipy.signal.lfilter(num2, den2, x)
+
+plt.figure(figsize=(10,7))
+plt.subplot(1,1,1)
+plt.plot(t, y)
+plt.grid(True)
+plt.title('Three Frequency Plot with lfilter')                           
+plt.ylabel('x(t)')
+plt.xlabel('t')
+plt.show()
+\end{lstlisting}
+\section{Results}
+\subsection{Part 1}
+\begin{figure}[H]
+\begin{center}
+\caption{Task 1}
+\includegraphics[scale=0.60]{pt1task1.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task 2}
+\includegraphics[scale=0.60]{pt1task2.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task 3}
+\includegraphics[scale=0.90]{pt1task3.png}
+\end{center}
+\end{figure}
+
+\subsection{Part 2}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Task}
+\includegraphics[scale=0.55]{pt2task1.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Tasks 2, 3, and 4}
+\includegraphics[scale=0.55]{pt2task4.png}
+\end{center}
+\end{figure}
+
+\section{Error Analysis}
+I don't think I had too many errors happen with this lab. It took me
+a while to figure out how to make the magnitude and phase functions
+work. After that everything seemed to go pretty smoothly.
+
+\section{Questions}
+1. Explain how the filter and filtered output in Part 2 makes sense given
+the Bode plots from Part 1. Discuss how the filter modifies specific
+frequency bands, in Hz.
+
+I am not sure if I am reading this correctly but the graph of the filter
+in Task 3 looks like it filters out the frequency at 3024 rad/s. This
+makes sense when looking at the filtered output in Part 2, since the
+two functions that are left afterwards are a sin and a cos function
+which cancel each other out.
+
+
+2. Discuss the purpose and workings of scipy.signal.bilinear() and
+scipy.signal.lfilter()
+
+The purpose of the bilinear() function is to return a digital
+IIR filter from an analog filter using a bilinear transform.
+The lfilter() is used to filter data using a IIR or FIR filter.
+
+3. What happens if you use a different sampling frequency in
+scipy.signal.bilinear() than you used for the time-domain signal?
+
+It seems to change the amplitude of signal that gets filtered.
+
+4. Leave any feedback on the clarity of lab tasks, expectations, and
+deliverables.
+
+Everything for this lab seemed pretty clear. I think the only thing
+that was kind of confusing is that there were three tasks in part 2
+that led up to one result.
+
+\section{Conclusion}
+I think this lab went pretty well. It introduced many useful tools
+that can be used when filtering a signal. It gave us practice in creating
+magnitude and phase functions based off of a Transform function. It 
+introduced how to create a bode plot, and it also introduced how to run a 
+signal through a filter. 
+
+\end{document}
+%This template was created by Roza Aceska.
