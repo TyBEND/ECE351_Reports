@@ -1,0 +1,511 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                              %
+% Tyler Bendele                                                %
+% ECE351 and Section 51                                        %
+% Lab 12 Filter Design                                         %
+% Due Date: April 26, 2022                                     %
+% Final Project                                                %
+%                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% DOCUMENT PREAMBLE %%%
+\documentclass[12pt]{report}
+\usepackage[english]{babel}
+%\usepackage{natbib}
+\usepackage{url}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0,0.95}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+backgroundcolor=\color{backcolour},
+commentstyle=\color{codegreen},
+keywordstyle=\color{codeblue},
+numberstyle=\tiny\color{codegray},
+stringstyle=\color{codegreen},
+basicstyle=\ttfamily\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbers=left,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2
+}
+\lstset{style=mystyle}
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+\title{Lab 12: Filter Design}
+% Title
+\author{Tyler Bendele}
+% Author
+\date{April 26, 2022}
+% Date
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{\thetitle}
+\cfoot{\thepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\begin{titlepage}
+\centering
+\vspace*{0.5 cm}
+% \includegraphics[scale = 0.075]{bsulogo.png}\\[1.0 cm] % 
+
+\begin{center}    \textsc{\Large   ECE 351 - Section \#51 }\\[2.0 cm]
+\end{center}% University Name
+\textsc{\Large Signals and Systems  }\\[0.5 cm] % Course 
+
+\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+{ \huge \bfseries \thetitle}\\
+\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+% \emph{Submitted To:}\\
+% Name\\
+% Affiliation\\
+%contact info\\
+\end{flushleft}
+\end{minipage}~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Submitted By :} \\
+Tyler Bendele
+\end{flushright}
+\end{minipage}\\[2 cm]
+% \includegraphics[scale = 0.5]{PICMathLogo.png}
+\end{titlepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\tableofcontents
+\pagebreak
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\renewcommand{\thesection}{\arabic{section}}
+\section{Introduction}
+The purpose of this lab is to apply what we have learned through out the
+course towards a practical application by designing a filter.
+
+In this project, we are working for an aircraft company and must be able to
+filter feedback signals from air crafts in order to enhance 
+the performance of the positioning system. The needed information for the
+position measurement is located within the range of 1.8kHz to 2.0kHz. We
+are tasked with creating a filter that will accurately find the signals
+within this range of frequencies while also taking into account the low
+frequency vibrations from the building's ventilation system.
+
+\section{Equations}
+The Equation shown below is the Transfer function of the filter design I
+decided to use, the values of the passive components can be seen in the
+circuit design.
+\begin{equation}
+    H(z) = \frac{\frac{1}{C_{2}R_{2}}s}{s^{2} + (\frac{1}{C_{1}R{1}} + \frac{1}{C_{1}R_{2}} + \frac{1}{C_{2}R_{2}})s + \frac{1}{C_{1}C_{2}R_{1}R_{2}}}
+\end{equation}
+
+\section{Filter Design}
+\begin{figure}[H]
+\begin{center}
+\caption{RC Bandpass Filter}
+\includegraphics[scale=0.60]{RC Bandpass Filter Design.png}
+\end{center}
+\end{figure}
+ 
+\section{Methodology}
+\subsection{Tasks 1}
+To start, I first wanted to get a better picture of the Noisy signal that
+was going to be passed through the filter. I plotted the signal using
+the given starter code and excel sheet containing the noise.
+
+\begin{lstlisting}[language=Python]
+# load input signal
+df = pd.read_csv('NoisySignal.csv')
+
+t = df ['0']. values
+sensor_sig = df ['1']. values
+
+plt.figure ( figsize = (10 , 7) )
+plt.plot (t , sensor_sig )
+plt.grid ()
+plt.title ('Noisy Input Signal')
+plt.xlabel ('Time [s]')
+plt.ylabel ('Amplitude [V]')
+plt.show ()
+
+# your code starts here , good luck
+# Task 1
+
+fs = 1e6
+steps = 1e-2
+ta = np.arange(1e-5, 2, steps)
+\end{lstlisting}
+
+Once I had a good picture of the noise, I wanted to identify the noise
+magnitudes and corresponding frequencies. This was done by putting the
+noisy signal through the fast fourier transform function. I then plotted the
+magnitude and phase over the entire range, before the expected frequencies,
+the expected frequency range, and after the expected frequencies. To 
+attenuate any frequencies greater than 100kHz, I simply set the range 
+of the graph to end at 100kHz. To account for the 0.05V given off by the 
+low frequency vibrations of the building I modified the phase to be zero
+when the magnitude was less than 0.05V. I then created the graphs of the
+magnitude and phase for each of the specified ranges using the single plot
+function given for the .stem function. These graphs can be seen plotted in
+the results section.
+
+\begin{lstlisting}[language=Python]
+freq1, X_mag1, X_phi1 = cleanfft(sensor_sig)
+
+def make_stem ( ax ,x ,y , color ='k', style ='solid', label ='', linewidths =2.5 ,** kwargs ) :
+    ax.axhline ( x [0] , x [ -1] ,0 , color ='r')
+    ax.vlines (x , 0 ,y , color = color , linestyles = style , label = label , linewidths = linewidths )
+    ax.set_ylim ([1.05* y . min () , 1.05* y . max () ])
+
+
+# Magnitude and Phase of Full Range
+fig , ax = plt . subplots ( figsize =(10 , 7) )
+make_stem( ax , freq1 , X_mag1)
+plt.title('Clean FFt Magnitude of Noisy signal')
+plt.ylabel('|x(t)|')
+plt.xlabel('f[Hz]')
+plt.show()
+
+fig , ax = plt . subplots ( figsize =(10 , 7) )
+make_stem( ax , freq1 , X_phi1)
+plt.title('Clean FFt Phase of Noisy signal')
+plt.ylabel('/_x(t)')
+plt.xlabel('f[Hz]')
+plt.show()
+\end{lstlisting}
+
+\subsection{Task 2}
+Once I knew what I was looking for, I was able to start creating
+my filter design. To do this, I first did a bit of research. The
+simplest design to understand that I found was a bandpass filter
+that combines a high pass and a low pass filter. This was done using
+two different RC configurations as shown in the circuit I created above.
+I then needed to find the Transfer function of the filter through
+a bit of circuit analysis and algebra. To check my transfer function I
+first plugged in into python to see how the bode plot of the function
+looked. I also ran the noise through the filter to see how that looked too.
+However, when I did this it looked kind of funky almost like I forgot to
+account for half of the filter. I ended up looking up the transfer
+function for the specific filter I was using to compare it to the
+one I calculated. It turns out they had noticeable differences, so
+I ended up plugging this new function into python and it gave a much
+better result. The function I came up with and the RC Bandpass filter
+circuit I used can be seen in earlier sections. The test code can be seen
+down below.
+\begin{lstlisting}[language=Python]
+# Part 2 Filter Test
+R1 = 10e3
+R2 = 10e3
+C1 = 8.85e-9      
+C2 = 7.96e-9          
+
+num1 = [(1/C2*R2), 0]
+den1 = [1, ((1/(C1*R1)) + (1/(C1*R2)) + (1/(C2*R2))), (1/(C1*C2*R1*R2))]
+
+steps = 1
+w = np.arange(1e3, 1e6 +steps, steps)
+
+sys = scipy.signal.TransferFunction( num1, den1)
+w1, mag1, phase1 = scipy.signal.bode(sys, w)
+
+plt.figure(figsize=(10,7))
+plt.subplot(1,1,1)
+plt.semilogx(w1, mag1)
+plt.title('Magnitude Transfer Function using Bode Function')                           
+plt.ylabel('|H(jw)|')
+plt.xlabel('w')
+plt.grid(True)
+
+num2, den2 = scipy.signal.bilinear(num1, den1, fs)
+y = scipy.signal.lfilter(num2, den2, sensor_sig)
+
+plt.figure(figsize=(10,7))
+plt.subplot(1,1,1)
+plt.plot(t, y)
+plt.grid(True)
+plt.title('Part 2 Noisy Signal Filtered Test')                           
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.show()
+\end{lstlisting}
+
+\subsection{Task 3}
+For the third task, I needed to generate the bode plots of the filter to
+make sure it was attenuated to the specifications of the handout.
+Unfortunately, I found this part difficult to accomplish because of how
+my plots turned out. The first bode plot I create showed the entire range of
+the filter and it seemed to give what I was looking for, with the
+curve focused on the range of 1.8kHz to 2.0kHz. The third bode plot is
+also useful because it better shows the curve that I was looking for over
+the wanted range. The difficult part of this task was reading the graphs
+in order to attenuate the noise. This needed to be done in order to meet
+the requirements of the position measurement being attenuated to less than
+-0.03dB, the low-frequency vibration noise being attenuated by at least
+-30dB, and the switching amplifer noise to be attenuated by at least -21dB.
+This part was difficult because the y component wasn't computed in decibels
+for some reason. Either that, or there was a problem in my design, which is
+also very possible. Because of this complication I did not adjust the
+resistors at all in order to tighten the spread, which could lead to
+the attenuation requirements not being met.
+
+\begin{lstlisting}[language=Python]
+# Part 3
+sys = con.TransferFunction ( num1 , den1 )
+plt.figure(figsize=(10,7))
+_ = con.bode( sys , w*2*np.pi , dB = True , Hz = True , deg = True , Plot = True )
+
+plt.figure(figsize=(10,7))
+_ = con.bode( sys , np.arange(1e-5, 1800 +steps, steps)*2*np.pi , dB = True , Hz = True , deg = True , Plot = True )
+
+plt.figure(figsize=(10,7))
+_ = con.bode( sys , np.arange(1800, 2000 +steps, steps)*2*np.pi , dB = True , Hz = True , deg = True , Plot = True )
+
+plt.figure(figsize=(10,7))
+_ = con.bode( sys , np.arange(2000, 100000 +steps, steps)*2*np.pi , dB = True , Hz = True , deg = True , Plot = True )
+\end{lstlisting}
+
+\subsection{Task 4}
+For the final task, I needed to filter the noisy sensor signal using the
+filter I created and then show how it has been correctly attenuated at the
+appropriate frequencies. To do this, I placed the filtered function from
+part 2 into the fast fourier transform from part 1 and then just
+graph each of the specified ranges again. Since the magnitude is the
+important part that should be looked at using the filter, I decided to
+only include the magnitudes of the filtered output in the results section.
+Example code for how I plotted each function can be seen down below.
+\begin{lstlisting}[language=Python]
+# Part 4
+freq2, X_mag2, X_phi2 = cleanfft(y)
+# Magnitude and Phase of Full Range
+fig , ax = plt . subplots ( figsize =(10 , 7) )
+make_stem( ax , freq2 , X_mag2)
+plt.title('Clean FFt Magnitude of Noisy signal')
+plt.ylabel('|x(t)|')
+plt.xlabel('f[Hz]')
+plt.show()
+
+fig , ax = plt . subplots ( figsize =(10 , 7) )
+make_stem( ax , freq2 , X_phi2)
+plt.title('Clean FFt Phase of Noisy signal')
+plt.ylabel('/_x(t)')
+plt.xlabel('f[Hz]')
+plt.show()
+\end{lstlisting}
+\section{Results}
+\begin{figure}[H]
+\begin{center}
+\caption{Noise}
+\includegraphics[scale=0.50]{NoisySig.png}
+\end{center}
+\end{figure}
+
+\subsection{Task 1}
+\begin{figure}[H]
+\begin{center}
+\caption{Full Unfiltered Range Magnitude}
+\includegraphics[scale=0.50]{unfilteredFullMag.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Full Unfiltered Range Phase}
+\includegraphics[scale=0.50]{unfilteredFullPhase.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Unfiltered Range 0 to 1800 Magnitude}
+\includegraphics[scale=0.50]{unfilteredBeforeMag.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Unfiltered Range 0 to 1800 Phase}
+\includegraphics[scale=0.50]{unfilteredBeforePhase.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Unfiltered Range 1800 to 2000 Magnitude}
+\includegraphics[scale=0.50]{UnfilteredWantMag.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Unfiltered Range 1800 to 2000 Phase}
+\includegraphics[scale=0.50]{unfilteredWantPhase.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Unfiltered Range 2000 to 100000 Magnitude}
+\includegraphics[scale=0.50]{unfilteredAfterMag.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Unfiltered Range 2000 to 100000 Magnitude}
+\includegraphics[scale=0.50]{unfilteredAfterPhase.png}
+\end{center}
+\end{figure}
+
+\subsection{Task 2}
+\begin{figure}[H]
+\begin{center}
+\caption{Transfer Function Test}
+\includegraphics[scale=0.50]{TransferFunc.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Filter Test}
+\includegraphics[scale=0.50]{FilterTest.png}
+\end{center}
+\end{figure}
+
+\subsection{Task 3}
+\begin{figure}[H]
+\begin{center}
+\caption{Bode Plot of Full Range}
+\includegraphics[scale=0.50]{BodeRange.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Bode Plot of Range 0 to 1800}
+\includegraphics[scale=0.50]{BodeBefore.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Bode Plot of Range 1800 to 2000}
+\includegraphics[scale=0.50]{BodeWant.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Bode Plot of Range 2000 to 100000}
+\includegraphics[scale=0.50]{BodeAfter.png}
+\end{center}
+\end{figure}
+
+\subsection{Task 4}
+\begin{figure}[H]
+\begin{center}
+\caption{Full Filtered Range Magnitude}
+\includegraphics[scale=0.50]{FilteredRangeMag.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Filtered Range 0 to 1800 Magnitude}
+\includegraphics[scale=0.50]{FilteredBeforeMag.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Filtered Range 1800 to 2000 Magnitude}
+\includegraphics[scale=0.50]{FilteredWantMag.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\caption{Filtered Range 2000 to 100000 Magnitude}
+\includegraphics[scale=0.50]{FilteredAfterMag.png}
+\end{center}
+\end{figure}
+
+\section{Error Analysis}
+I had a couple of problems with this project. I think the
+main problem I had was trying to adjust my plot based off
+of the bode plots generated. Since all of the bode plots
+except for the wanted range give large values for the
+magnitude, it makes me wonder if it didn't actually
+plot in decibels. Luckily, the most important bode plot,
+the range of 1.8 kHz to 2.0 kHz, gave exactly what I was
+expecting. Because of the uncertainty seen in these
+plots, I did not adjust my passive filter components at
+all. However, based on the plots I was able to get out of the
+filtered output, I think it filtered pretty well. It only
+has a couple of smaller noises outside of the wanted range
+that made it through the filter. The phase, I received
+from the filter had quite a bit of unwanted noise in it.
+Fortunately, the goal was to be able to read the 
+magnitudes of the noise within the expected frequencies.
+I might have been able to attenuate the graphs better if
+I were to have used an RLC design for my Bandpass filter.
+I believe this is true, because The RLC circuit given from
+lab 10, seems to make the range of wanted frequencies
+tighter.
+
+\section{Questions}
+1. Earlier this semester, you were asked what you personally wanted to get out of taking this
+course. Do you feel like that personal goal was met? Why or why not?
+
+Yes, I definitely think I was able to get what I wanted
+out of the course. I wanted to learn as much as possible
+and I definitely learned a lot through this class. In 
+fact, it has somewhat sparked my curiosity to learn
+more about signals and systems.
+
+2. Please fill out the course feedback survey, I will read every word and very much appreciate
+the feedback.
+
+3. Good luck in the rest of your education and career!
+
+Thanks, you too!
+
+\section{Conclusion}
+I believe that for the most part this lab went pretty 
+well. I was able to apply a lot of what I have learned
+over the semester to this project and actually have it
+apply to a real world concept. I also think my filter
+turned out good, however there are quite a few
+improvements that can be made. For one thing, I could
+adjust the fft function to better account for the phase
+since there was quite a bit of noise in my filtered output
+specifically for the phase. I could also adjust the
+passive components of the circuit to more tightly
+fit the wanted range of frequencies. Besides, this
+I think the filter turned out pretty well.
+
+
+\end{document}
+%This template was created by Roza Aceska.
